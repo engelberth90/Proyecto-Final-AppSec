@@ -111,6 +111,22 @@ PLUGINS=(
   "wp-file-manager|7.0|CVE-2020-25213 (legacy unauth RCE class)"
   "backup-migration|1.3.6|CVE-2023-6553 (BackupBuddy / Backup Migration unauth RCE)"
   "woocommerce|7.0.0|CVE-2023-28121 (Auth bypass)"
+  # --- Phase A additions: 2024-2025 published CVE coverage ---
+  "wp-automatic|3.92.0|CVE-2024-27956 (Unauth SQLi -> admin creation)"
+  "masterstudy-lms-learning-management-system|3.2.5|CVE-2024-1512 (BAC / PE)"
+  "fluent-smtp|2.2.80|CVE-2024-9511 (Broken Access Control)"
+  "otter-blocks|2.6.4|CVE-2024-2226 (Stored XSS)"
+  "nextend-facebook-connect|3.1.12|CVE-2024-1775 (Auth bypass)"
+  "download-manager|3.2.98|CVE-2024-8284 (LFI / IDOR)"
+  "wp-ultimate-csv-importer|7.20.0|CVE-2025-2007 (Arbitrary File Upload -> RCE)"
+  "mailpoet|5.5.1|CVE-2024-12743 (Stored XSS)"
+  "wp-job-manager|2.2.0|CVE-2024-34549 (Broken Access Control)"
+  "seo-by-rank-math|1.0.228|CVE-2024-9161 (Open Redirect / SSRF)"
+  "jetpack|13.8|CVE-2024-9926 (Broken Access Control)"
+  "wp-recall|16.26.5|CVE-2024-32709 (SQLi)"
+  "wp-time-capsule|1.22.20|CVE-2024-38770 (Deserialization)"
+  "ws-form|1.9.243|CVE-2024-47320 (Stored XSS)"
+  "simple-membership|4.4.1|CVE-2024-22308 (Auth bypass)"
 )
 
 TOTAL=${#PLUGINS[@]}
@@ -158,9 +174,54 @@ done
 
 # --- Themes ---
 log "Installing vulnerable themes"
-wp_cli theme install twentyeleven --activate --force >/dev/null 2>&1 || true
+wp_cli theme install twentyeleven --force >/dev/null 2>&1 || true
 wp_cli theme install twentyfifteen --force >/dev/null 2>&1 || true
 wp_cli theme install twentyseventeen --force >/dev/null 2>&1 || true
+
+# Phase A: 5 vulnerable themes pinned to known-vulnerable 2024-2025 CVE versions.
+# Only one is activated to avoid layout conflicts; the rest stay installed-but-inactive
+# (still detectable by scanners via /wp-content/themes/<slug>/style.css fingerprinting).
+THEMES=(
+  "hello-elementor|3.0.0|CVE-2024-31289"
+  "astra|4.6.8|CVE-2024-2347"
+  "blocksy|2.0.40|CVE-2024-3747"
+  "oceanwp|3.5.4|CVE-2024-2476"
+  "hestia|3.1.2|CVE-2024-37467"
+)
+
+install_theme() {
+  local slug="$1" ver="$2"
+  if wp_cli theme is-installed "$slug" >/dev/null 2>&1; then
+    warn "theme $slug already installed"
+    return 0
+  fi
+  log "Install theme $slug @ $ver"
+  if wp_cli theme install "$slug" --version="$ver" --force >/tmp/wpcli.out 2>&1; then
+    ok "theme wp-cli ok: $slug $ver"
+    return 0
+  fi
+  warn "wp-cli theme install failed for $slug $ver — trying direct ZIP"
+  local url="https://downloads.wordpress.org/theme/${slug}.${ver}.zip"
+  local tmp="/tmp/${slug}-${ver}.zip"
+  if docker exec "$CONTAINER" bash -c "curl -fsSL --max-time 30 '$url' -o '$tmp'"; then
+    if wp_cli theme install "$tmp" --force >>/tmp/wpcli.out 2>&1; then
+      ok "theme ZIP fallback ok: $slug $ver"
+      return 0
+    fi
+  fi
+  err "Failed theme: $slug $ver"
+  return 1
+}
+
+for entry in "${THEMES[@]}"; do
+  tslug=$(echo "$entry" | awk -F'|' '{print $1}')
+  tver=$(echo "$entry"  | awk -F'|' '{print $2}')
+  install_theme "$tslug" "$tver" || true
+done
+
+# Activate only hello-elementor (Phase A vulnerable theme of record).
+wp_cli theme activate hello-elementor >/dev/null 2>&1 \
+  || wp_cli theme activate twentyeleven >/dev/null 2>&1 || true
 
 # --- Mailhog SMTP wiring ---
 log "Wiring SMTP to MailHog"

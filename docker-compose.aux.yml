@@ -1,0 +1,145 @@
+################################################################################
+# wordpress-vulnerable-lab — Phase C: Exposed internal auxiliary services
+# Author: Ayi NEDJIMI <ayinedjimi@users.noreply.github.com>
+#
+# These services are intentionally misconfigured for scanner / pentest training.
+# They attach to the default project network created by docker-compose.yml so
+# the WordPress container can reach them by service name (SSRF chains, etc.).
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.aux.yml up -d
+#
+# DO NOT EXPOSE TO THE INTERNET.
+#
+# Port allocations (host -> container):
+#   Elasticsearch  -> 31392 -> 9200
+#   MinIO API      -> 31900 -> 9000
+#   MinIO Console  -> 31901 -> 9001
+#   Gitea HTTP     -> 31300 -> 3000
+#   Gitea SSH      -> 31322 -> 22
+#   Fake AWS IMDS  -> 31254 -> 80
+################################################################################
+
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.23
+    container_name: wpvl-elasticsearch
+    restart: unless-stopped
+    # Intentionally: no auth, single-node, open bind. Scanner should hit
+    # GET /_cat/indices and GET /_cluster/health without credentials.
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - xpack.security.enabled=false
+    ports:
+      - "31392:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+  minio:
+    image: minio/minio:RELEASE.2023-09-04T19-57-37Z
+    container_name: wpvl-minio
+    restart: unless-stopped
+    # Intentionally: default creds minioadmin / minioadmin.
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: "minioadmin"
+      MINIO_ROOT_PASSWORD: "minioadmin"
+    ports:
+      - "31900:9000"
+      - "31901:9001"
+    volumes:
+      - minio_data:/data
+
+  # One-shot init: create a *public* bucket "wp-backups" with a dummy DB dump.
+  minio-init:
+    image: minio/mc:RELEASE.2023-09-07T22-48-55Z
+    container_name: wpvl-minio-init
+    depends_on:
+      - minio
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set local http://minio:9000 minioadmin minioadmin;
+      /usr/bin/mc mb -p local/wp-backups || true;
+      /usr/bin/mc anonymous set public local/wp-backups || true;
+      printf 'DROP TABLE IF EXISTS wp_users;\\nCREATE TABLE wp_users (id INT, user_login VARCHAR(60), user_pass VARCHAR(255));\\nINSERT INTO wp_users VALUES (1,\\'admin\\',\\'$$P$$BleakedHashLeak.example\\');\\n' > /tmp/db_dump.sql;
+      /usr/bin/mc cp /tmp/db_dump.sql local/wp-backups/db_dump.sql;
+      echo 'MinIO bucket wp-backups initialized (PUBLIC).';
+      "
+
+  gitea:
+    image: gitea/gitea:1.18.5
+    container_name: wpvl-gitea
+    restart: unless-stopped
+    # Intentionally: install lock disabled, signup open, weak admin creds.
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__security__INSTALL_LOCK: "true"
+      GITEA__service__DISABLE_REGISTRATION: "false"
+      GITEA__server__ROOT_URL: "http://localhost:31300/"
+    ports:
+      - "31300:3000"
+      - "31322:22"
+    volumes:
+      - gitea_data:/data
+
+  # Seed Gitea with a public org "internal" and repo "secrets-leak" containing
+  # a .env in commit history (later "removed" but still reachable via git log).
+  gitea-init:
+    image: alpine/git:2.40.1
+    container_name: wpvl-gitea-init
+    depends_on:
+      - gitea
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      apk add --no-cache curl >/dev/null 2>&1 || true;
+      sleep 15;
+      curl -s -o /dev/null -X POST http://gitea:3000/api/v1/admin/users \
+        -H 'Content-Type: application/json' \
+        -u 'gitea_admin:r8sA8CPHD9!bt6d' \
+        -d '{\"username\":\"leakbot\",\"email\":\"leakbot@example.local\",\"password\":\"leakbot123\",\"must_change_password\":false}' || true;
+      curl -s -X POST http://gitea:3000/api/v1/orgs \
+        -H 'Content-Type: application/json' \
+        -u 'leakbot:leakbot123' \
+        -d '{\"username\":\"internal\",\"visibility\":\"public\"}' || true;
+      curl -s -X POST http://gitea:3000/api/v1/orgs/internal/repos \
+        -H 'Content-Type: application/json' \
+        -u 'leakbot:leakbot123' \
+        -d '{\"name\":\"secrets-leak\",\"auto_init\":true,\"private\":false}' || true;
+      cd /tmp && rm -rf secrets-leak;
+      git clone http://leakbot:leakbot123@gitea:3000/internal/secrets-leak.git || exit 0;
+      cd secrets-leak;
+      git config user.email leakbot@example.local; git config user.name leakbot;
+      printf 'AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\\nAWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\\nDB_PASSWORD=SuperSecret123!\\nWP_AUTH_KEY=leakedwpauthkey\\n' > .env;
+      git add .env && git commit -m 'add env (oops)';
+      printf '# secrets-leak\\nInternal helper repo.\\n' > README.md;
+      git rm .env && git commit -m 'remove secrets';
+      git push origin master || git push origin main || true;
+      echo 'Gitea seeded: org=internal repo=secrets-leak (secret in history).';
+      "
+
+  # Fake AWS IMDS (Instance Metadata Service v1) for SSRF chain exercises.
+  # Reachable from the wordpress container as http://aws-metadata/
+  aws-metadata:
+    image: nginx:1.25-alpine
+    container_name: wpvl-aws-metadata
+    restart: unless-stopped
+    ports:
+      - "31254:80"
+    networks:
+      default:
+        aliases:
+          - aws-metadata
+          - 169.254.169.254.nip.io
+    volumes:
+      - ./config/aws-metadata:/usr/share/nginx/html:ro
+
+volumes:
+  es_data:
+  minio_data:
+  gitea_data:

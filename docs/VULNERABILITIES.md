@@ -184,21 +184,43 @@ The lab base image runs **Apache 2.4.38 (Debian buster)** + **PHP 7.4 (EOL)**. T
 
 `T1190` Exploit Public-Facing App · `T1078` Valid Accounts · `T1110.001` Password Brute Force · `T1505.003` Web Shell · `T1552.001` Credentials in Files · `T1046` Network Service Discovery · `T1083` File & Directory Discovery · `T1059` Command Execution · `T1190.001` (XSS in admin panel)
 
-## Summary by vulnerability class
+## Summary by vulnerability class (v2.0.0)
 
 | Type | Count |
 |------|-------|
-| Plugin RCE / AFU | 9 |
-| Plugin SQLi | 9 |
-| Plugin XSS | 12 |
-| Plugin PE | 7 |
-| Plugin AB / Account takeover | 5 |
+| Plugin RCE / AFU | 11 |
+| Plugin SQLi | 11 |
+| Plugin XSS (stored + reflected) | 18 |
+| Plugin PE / BAC | 14 |
+| Plugin AB / Account takeover | 9 |
+| Plugin Deserialization | 2 |
+| Plugin Open Redirect / SSRF | 2 |
+| Theme XSS (stored) | 4 |
+| Theme BAC | 1 |
 | IDOR / Info disclosure | 4 |
 | Misconfig / leaked file | 11 |
 | WP core CVE (top) | 12 |
-| Infrastructure CVE (Apache/PHP) | 8 |
+| Infrastructure CVE (Apache / PHP / nginx) | 14 |
 | Weak credentials | 5 |
-| **Total verifiable vulnerabilities** | **82** |
+| Auxiliary services (Elasticsearch / MinIO / Gitea / IMDS) | 8 |
+| Custom didactic mini-plugins (`bazooka-vuln-pack`) | 10 |
+| Documented kill-chains (CTF) | 5 |
+| **Total verifiable vulnerabilities** | **141** |
+| **Documented multi-step kill-chains** | **5** |
+
+## Companion ground-truth docs
+
+The v2.0.0 expansion was built in phases, each producing its own ground-truth
+fragment. Read them alongside this file:
+
+| Phase | Scope | Doc |
+|-------|-------|-----|
+| A | 15 CVE-pinned plugins (2024-2025) + 5 vulnerable themes | [`PHASE_A_GROUND_TRUTH.md`](PHASE_A_GROUND_TRUTH.md) |
+| B | 10 custom didactic mini-plugins (`bazooka-vuln-pack`) | [`PHASE_B_GROUND_TRUTH.md`](PHASE_B_GROUND_TRUTH.md) |
+| C | Auxiliary services (Elasticsearch / MinIO / Gitea / fake IMDS) | [`PHASE_C_SERVICES.md`](PHASE_C_SERVICES.md) |
+| D | Alternative stack: nginx 1.18 + PHP 8.1 + ModSec-lite | [`PHASE_D_NGINX.md`](PHASE_D_NGINX.md) |
+| E | 5 fully-documented CTF kill-chains with flags | [`PHASE_E_CTF.md`](PHASE_E_CTF.md) + [`CTF/`](CTF/) |
+| F | WP version matrix: 5.2 / 5.3 / 6.1 / 6.8 in parallel | [`PHASE_F_MATRIX.md`](PHASE_F_MATRIX.md) |
 
 ## Caveats
 

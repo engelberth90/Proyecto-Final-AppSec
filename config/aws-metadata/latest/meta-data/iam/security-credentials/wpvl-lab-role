@@ -1,0 +1,9 @@
+{
+  "Code": "Success",
+  "LastUpdated": "2026-05-22T00:00:00Z",
+  "Type": "AWS-HMAC",
+  "AccessKeyId": "ASIAIOSFODNN7EXAMPLE",
+  "SecretAccessKey": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+  "Token": "FAKE-SESSION-TOKEN-FOR-LAB-USE-ONLY",
+  "Expiration": "2099-01-01T00:00:00Z"
+}

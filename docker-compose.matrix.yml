@@ -1,0 +1,158 @@
+# docker-compose.matrix.yml
+# Phase F — Multi-WordPress-version benchmarking matrix.
+# Author: Ayi NEDJIMI <ayinedjimi@users.noreply.github.com>
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.matrix.yml up -d
+#
+# Reuses the existing `db` (mysql:5.7) service from docker-compose.yml.
+# Each WP container gets its own database inside that single MySQL server:
+#   wp52 / wp53 / wp61 / wp68
+#
+# Port allocation:
+#   31352 -> WP 5.2  (CVE-2019-17671 REST API user leak)
+#   31353 -> WP 5.3  (already exposed by main lab on 31338; mirrored here for parity)
+#   31361 -> WP 6.1  (CVE-2023-2745 directory traversal)
+#   31368 -> WP 6.8  (latest hardened baseline; cleanest target for false-positive testing)
+#
+# Each WP container ships with admin/admin and reuses the host's pre-built
+# vulnerable plugin set via bind mount where versions are compatible.
+
+services:
+
+  db-matrix-init:
+    image: mysql:5.7
+    container_name: wpvl-matrix-init
+    depends_on:
+      - db
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "until mysqladmin ping -h db -uroot -proot --silent; do sleep 2; done;
+       mysql -h db -uroot -proot -e
+         'CREATE DATABASE IF NOT EXISTS wp52;
+          CREATE DATABASE IF NOT EXISTS wp53;
+          CREATE DATABASE IF NOT EXISTS wp61;
+          CREATE DATABASE IF NOT EXISTS wp68;
+          GRANT ALL ON wp52.* TO wpuser@%;
+          GRANT ALL ON wp53.* TO wpuser@%;
+          GRANT ALL ON wp61.* TO wpuser@%;
+          GRANT ALL ON wp68.* TO wpuser@%;
+          FLUSH PRIVILEGES;'"
+    restart: "no"
+    networks:
+      - default
+
+  wp52:
+    image: wordpress:5.2-php7.2-apache
+    container_name: wpvl-wp52
+    depends_on:
+      - db-matrix-init
+    ports:
+      - "31352:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wp52
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - wp52-data:/var/www/html
+      - ./plugins:/var/www/html/wp-content/plugins:ro
+    networks:
+      - default
+
+  wp53:
+    image: wordpress:5.3-php7.4-apache
+    container_name: wpvl-wp53
+    depends_on:
+      - db-matrix-init
+    ports:
+      - "31353:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wp53
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - wp53-data:/var/www/html
+      - ./plugins:/var/www/html/wp-content/plugins:ro
+    networks:
+      - default
+
+  wp61:
+    image: wordpress:6.1-php8.0-apache
+    container_name: wpvl-wp61
+    depends_on:
+      - db-matrix-init
+    ports:
+      - "31361:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wp61
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - wp61-data:/var/www/html
+      - ./plugins:/var/www/html/wp-content/plugins:ro
+    networks:
+      - default
+
+  wp68:
+    image: wordpress:6.8-php8.2-apache
+    container_name: wpvl-wp68
+    depends_on:
+      - db-matrix-init
+    ports:
+      - "31368:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_NAME: wp68
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_TABLE_PREFIX: wp_
+      WORDPRESS_DEBUG: 0
+    volumes:
+      - wp68-data:/var/www/html
+      # No legacy-plugin bind mount: 6.8 should stay clean for false-positive baselining.
+    networks:
+      - default
+
+  # One-shot installer: runs `wp core install` and creates admin/admin on each box.
+  matrix-install:
+    image: wordpress:cli
+    container_name: wpvl-matrix-install
+    depends_on:
+      - wp52
+      - wp53
+      - wp61
+      - wp68
+    user: "33:33"
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "for target in wp52:31352 wp53:31353 wp61:31361 wp68:31368; do
+         host=\\\$(echo \\\$target | cut -d: -f1);
+         port=\\\$(echo \\\$target | cut -d: -f2);
+         echo Installing \\\$host on internal port 80;
+         until wp --path=/var/www/html --allow-root --url=http://\\\${host} core is-installed 2>/dev/null; do
+           wp --path=/var/www/html --allow-root --url=http://\\\${host} core install \
+             --title=\\\"wpvulnlab-\\\${host}\\\" \
+             --admin_user=admin --admin_password=admin --admin_email=admin@wpvulnlab.local \
+             --skip-email || sleep 3;
+         done;
+       done"
+    volumes:
+      - wp52-data:/var/www/html
+    restart: "no"
+    networks:
+      - default
+
+volumes:
+  wp52-data:
+  wp53-data:
+  wp61-data:
+  wp68-data:

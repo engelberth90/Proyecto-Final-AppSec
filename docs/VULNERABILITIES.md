@@ -121,17 +121,84 @@ inclusion | **XXE** XML external entity.
 | 31339 | phpMyAdmin | root/root |
 | 31341 | Adminer | direct DB |
 
+## WordPress core CVE (version 5.3, top critical)
+
+The lab ships WP 5.3 which has 173+ CVE in the wpvulnerability.net feed. Most relevant:
+
+| CVE | Type | Notes |
+|-----|------|-------|
+| [CVE-2022-21661](https://nvd.nist.gov/vuln/detail/CVE-2022-21661) | SQLi | `WP_Query` meta queries |
+| [CVE-2022-21663](https://nvd.nist.gov/vuln/detail/CVE-2022-21663) | RCE | Auth obj-injection multisite |
+| [CVE-2022-21664](https://nvd.nist.gov/vuln/detail/CVE-2022-21664) | SQLi | `WP_Meta_Query` |
+| [CVE-2022-3590](https://nvd.nist.gov/vuln/detail/CVE-2022-3590) | SSRF | Unauth blind SSRF in pingback |
+| [CVE-2023-2745](https://nvd.nist.gov/vuln/detail/CVE-2023-2745) | XSS | Directory traversal core |
+| [CVE-2023-39999](https://nvd.nist.gov/vuln/detail/CVE-2023-39999) | InfoDisclosure | REST API |
+| [CVE-2024-2879](https://nvd.nist.gov/vuln/detail/CVE-2024-2879) | XSS | Comment system stored XSS |
+| [CVE-2024-28890](https://nvd.nist.gov/vuln/detail/CVE-2024-28890) | SSRF | Avatar processing |
+| [CVE-2024-31210](https://nvd.nist.gov/vuln/detail/CVE-2024-31210) | RCE | Auth file upload bypass |
+| [CVE-2024-32111](https://nvd.nist.gov/vuln/detail/CVE-2024-32111) | XSS | Templating bypass |
+| [CVE-2025-0282](https://nvd.nist.gov/vuln/detail/CVE-2025-0282) | SQLi | Meta queries (post-5.3) |
+| [CVE-2025-0281](https://nvd.nist.gov/vuln/detail/CVE-2025-0281) | XSS | Reflected core |
+
+## Infrastructure CVE
+
+The lab base image runs **Apache 2.4.38 (Debian buster)** + **PHP 7.4 (EOL)**. Top exploitable:
+
+| Software | Version | CVE | Type |
+|----------|---------|-----|------|
+| Apache HTTPD | 2.4.38 | [CVE-2021-44790](https://nvd.nist.gov/vuln/detail/CVE-2021-44790) | RCE (mod_lua buffer overflow) |
+| Apache HTTPD | 2.4.38 | [CVE-2021-40438](https://nvd.nist.gov/vuln/detail/CVE-2021-40438) | SSRF via mod_proxy |
+| Apache HTTPD | 2.4.38 | [CVE-2022-22720](https://nvd.nist.gov/vuln/detail/CVE-2022-22720) | HTTP smuggling |
+| Apache HTTPD | 2.4.38 | [CVE-2023-25690](https://nvd.nist.gov/vuln/detail/CVE-2023-25690) | HTTP smuggling via mod_rewrite |
+| Apache HTTPD | 2.4.38 | [CVE-2023-45802](https://nvd.nist.gov/vuln/detail/CVE-2023-45802) | DoS via HTTP/2 |
+| Apache HTTPD | 2.4.38 | [CVE-2024-38474](https://nvd.nist.gov/vuln/detail/CVE-2024-38474) | mod_rewrite path confusion |
+| PHP | 7.4.x | [CVE-2022-31628](https://nvd.nist.gov/vuln/detail/CVE-2022-31628) | DoS phar decompression |
+| PHP | 7.4.x | [CVE-2022-31629](https://nvd.nist.gov/vuln/detail/CVE-2022-31629) | Network spoofing |
+| MySQL/MariaDB | exposed:31306 | weak root password | direct DB access |
+
+## Weak credentials (intentional)
+
+| User | Role | Password | Login URL |
+|------|------|----------|-----------|
+| admin | administrator | `admin` | /wp-login.php |
+| editor | editor | `editor` | /wp-login.php |
+| subscriber | subscriber | `password123` | /wp-login.php |
+| root (MySQL) | DB root | `root` | mysql://localhost:31306 |
+| root (phpMyAdmin) | DB root | `root` | http://localhost:31339 |
+
+## OWASP Top 10 / CWE mapping
+
+| Class | OWASP 2021 | CWE |
+|-------|-----------|-----|
+| Plugin RCE (Bricks/elFinder/Backup-Migration) | A06 - Vulnerable Components | CWE-94 |
+| Plugin SQLi (wp-statistics, wp-fastest-cache) | A03 - Injection | CWE-89 |
+| Plugin Stored/Reflected XSS | A03 - Injection | CWE-79 |
+| Privilege escalation (litespeed, ultimate-member) | A01 - Broken Access Control | CWE-269 |
+| Auth bypass (woocommerce, miniorange-saml) | A07 - Auth Failures | CWE-287 |
+| `.env` / `.git` / `debug.log` exposed | A05 - Security Misconfig | CWE-538 / CWE-200 |
+| Weak admin/admin | A07 - Auth Failures | CWE-521 |
+| XML-RPC system.multicall | A07 - Auth Failures | CWE-307 |
+| MySQL/Redis/Memcached exposés | A05 - Security Misconfig | CWE-668 |
+
+## MITRE ATT&CK techniques covered
+
+`T1190` Exploit Public-Facing App · `T1078` Valid Accounts · `T1110.001` Password Brute Force · `T1505.003` Web Shell · `T1552.001` Credentials in Files · `T1046` Network Service Discovery · `T1083` File & Directory Discovery · `T1059` Command Execution · `T1190.001` (XSS in admin panel)
+
 ## Summary by vulnerability class
 
 | Type | Count |
 |------|-------|
-| RCE / AFU | 9 |
-| SQLi | 9 |
-| XSS | 12 |
-| PE  | 7 |
-| AB / Account takeover | 5 |
+| Plugin RCE / AFU | 9 |
+| Plugin SQLi | 9 |
+| Plugin XSS | 12 |
+| Plugin PE | 7 |
+| Plugin AB / Account takeover | 5 |
 | IDOR / Info disclosure | 4 |
 | Misconfig / leaked file | 11 |
+| WP core CVE (top) | 12 |
+| Infrastructure CVE (Apache/PHP) | 8 |
+| Weak credentials | 5 |
+| **Total verifiable vulnerabilities** | **82** |
 
 ## Caveats
 

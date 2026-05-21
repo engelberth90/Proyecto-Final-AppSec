@@ -15,7 +15,5 @@ RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
 </IfModule>
 
-# server-status / server-info bait (Apache must allow it server-side; harmless if not).
-<Location /server-status>
-  Require all granted
-</Location>
+# server-status / server-info bait — to enable, set server-side in apache2.conf.
+# (Location directives are not allowed in .htaccess.)

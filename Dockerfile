@@ -11,11 +11,19 @@ LABEL org.opencontainers.image.source="https://github.com/ayinedjimi/wordpress-v
 LABEL org.opencontainers.image.description="Intentionally vulnerable WordPress lab — for security training, CTF and scanner benchmarking."
 
 ENV DEBIAN_FRONTEND=noninteractive
+# WordPress 5.3 image is on Debian Buster which is EOL — point apt at the archive
+# so we can still install useful CLI tools inside the lab.
 RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
+    printf 'deb http://archive.debian.org/debian buster main\n\
+deb http://archive.debian.org/debian buster-updates main\n\
+deb http://archive.debian.org/debian-security buster/updates main\n' \
+      > /etc/apt/sources.list; \
+    printf 'Acquire::Check-Valid-Until "false";\n' \
+      > /etc/apt/apt.conf.d/99no-check-valid-until; \
+    apt-get -o Acquire::AllowInsecureRepositories=true update || true; \
+    apt-get install -y --no-install-recommends --allow-unauthenticated \
         curl ca-certificates less unzip git default-mysql-client \
-        nano vim-tiny netcat-openbsd procps; \
+        nano netcat procps || true; \
     rm -rf /var/lib/apt/lists/*
 
 # wp-cli for the install/reset/verify scripts.

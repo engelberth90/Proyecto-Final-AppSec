@@ -1,0 +1,5 @@
+wordpress-vulnerable-lab
+========================
+Maintained by Ayi NEDJIMI — https://github.com/ayinedjimi/wordpress-vulnerable-lab
+
+This server is INTENTIONALLY VULNERABLE. Do not connect it to a real network.

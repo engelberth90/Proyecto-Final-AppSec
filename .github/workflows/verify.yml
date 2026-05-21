@@ -1,0 +1,33 @@
+name: verify — CVE endpoints
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Boot stack
+        run: |
+          docker compose up -d --build
+          sleep 20
+
+      - name: Install plugins
+        run: |
+          chmod +x scripts/install.sh
+          bash scripts/install.sh || true
+
+      - name: Verify
+        run: |
+          chmod +x scripts/verify.sh
+          bash scripts/verify.sh http://localhost:31338
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

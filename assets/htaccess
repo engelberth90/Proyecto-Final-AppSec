@@ -1,0 +1,21 @@
+# wordpress-vulnerable-lab — intentionally permissive .htaccess.
+# Notable misconfigs:
+#   - Directory listing on /wp-content/uploads/
+#   - .git/, .env, dump.sql, *.bak are reachable
+#   - No HSTS / no security headers
+
+Options +Indexes +FollowSymLinks
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+
+# server-status / server-info bait (Apache must allow it server-side; harmless if not).
+<Location /server-status>
+  Require all granted
+</Location>

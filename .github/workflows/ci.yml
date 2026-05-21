@@ -1,0 +1,39 @@
+name: CI — lab boots
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  boot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start stack
+        run: |
+          docker compose up -d --build
+          sleep 30
+
+      - name: Wait for WordPress HTTP
+        run: |
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:31338 || echo 000)
+            echo "attempt $i -> $code"
+            if [ "$code" = "200" ] || [ "$code" = "302" ] || [ "$code" = "301" ]; then
+              exit 0
+            fi
+            sleep 3
+          done
+          docker compose logs wordpress
+          exit 1
+
+      - name: Show running containers
+        if: always()
+        run: docker ps -a
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

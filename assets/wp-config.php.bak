@@ -1,0 +1,25 @@
+<?php
+/**
+ * wordpress-vulnerable-lab — intentional backup leak.
+ * Filename: wp-config.php.bak (commonly forgotten on real prod servers).
+ */
+define( 'DB_NAME',     'wordpress' );
+define( 'DB_USER',     'wordpress' );
+define( 'DB_PASSWORD', 'wordpress' );
+define( 'DB_HOST',     'db:3306' );
+define( 'DB_CHARSET',  'utf8' );
+define( 'DB_COLLATE',  '' );
+
+define( 'AUTH_KEY',          'lab-fake-auth-key-do-not-use' );
+define( 'SECURE_AUTH_KEY',   'lab-fake-secure-key-do-not-use' );
+define( 'LOGGED_IN_KEY',     'lab-fake-loggedin-key-do-not-use' );
+define( 'NONCE_KEY',         'lab-fake-nonce-key-do-not-use' );
+
+$table_prefix = 'wp_';
+define( 'WP_DEBUG', true );
+define( 'WP_DEBUG_LOG', true );
+
+if ( ! defined( 'ABSPATH' ) ) {
+    define( 'ABSPATH', __DIR__ . '/' );
+}
+require_once ABSPATH . 'wp-settings.php';

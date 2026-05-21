@@ -1,0 +1,11 @@
+.env
+.env.local
+*.log
+plugins/*.zip
+themes/*.zip
+docs/images/*.tmp
+.idea/
+.vscode/
+node_modules/
+__pycache__/
+*.pyc

@@ -1,0 +1,8 @@
+[19-May-2026 09:12:31 UTC] PHP Notice:  Undefined index: user_id in /var/www/html/wp-content/plugins/email-subscribers/lite/includes/db/class-es-db-contacts.php on line 174
+[19-May-2026 09:12:31 UTC] PHP Warning: mysqli_query(): MySQL server has gone away
+[19-May-2026 09:13:02 UTC] WordPress database error You have an error in your SQL syntax near 'OR 1=1 --' at line 1 for query SELECT * FROM wp_users WHERE user_login = 'admin' OR 1=1 -- '
+[19-May-2026 09:13:55 UTC] PHP Stack trace:
+[19-May-2026 09:13:55 UTC] PHP   1. {main}() /var/www/html/wp-login.php:0
+[19-May-2026 09:13:55 UTC] PHP   2. wp_signon() /var/www/html/wp-login.php:97
+[19-May-2026 09:14:11 UTC] DEBUG: api_key=lab-fake-stripe-secret-replace-me loaded for stripe gateway
+[19-May-2026 09:14:11 UTC] DEBUG: smtp_password=correcthorsebatterystaple sent to mail.localhost

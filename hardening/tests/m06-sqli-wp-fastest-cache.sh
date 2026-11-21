@@ -44,7 +44,9 @@ fi
 
 echo
 echo "== 2. Saneado esc_sql() presente en is_user_admin() =="
-if docker exec "$WP" sed -n '474,492p' "$PLUG/inc/cache.php" 2>/dev/null | grep -q 'esc_sql'; then
+# Se extrae el cuerpo de la función (su posición varía entre versiones) y se
+# comprueba que el valor de la cookie se sanea antes de la consulta.
+if docker exec "$WP" awk '/function is_user_admin/{f=1} f{print} f&&/return false/{exit}' "$PLUG/inc/cache.php" 2>/dev/null | grep -qE 'esc_sql|\$wpdb->prepare'; then
   ok "La consulta sanea el valor de la cookie con esc_sql()"
 else
   no "La consulta usa el valor de la cookie sin esc_sql()"

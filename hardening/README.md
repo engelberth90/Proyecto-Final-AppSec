@@ -20,7 +20,7 @@ Cada mitigación sigue el mismo ciclo:
 | [M-05](M-05-xss-ninja-forms.md) | 2.5 XSS reflejado en Ninja Forms (CVE-2023-37979) | A03 | Actualización del complemento a 3.6.26 (saneador del proveedor); se mantiene inactivo por incompatibilidad con el núcleo | Verificado |
 | [M-06](M-06-sqli-wp-fastest-cache.md) | 2.6 SQLi ciega en WP Fastest Cache (CVE-2023-6063) | A03 | Actualización del complemento a 1.2.2 (saneado con `esc_sql`); compatible con el núcleo y verificado en vivo | Verificado |
 | [M-07](M-07-pe-ultimate-member.md) | 2.7 Escalada de privilegios en Ultimate Member (CVE-2023-3460) | A01 | Actualización del complemento a 2.6.7 (lista blanca de claves de metadatos); se mantiene inactivo por incompatibilidad con el núcleo | Verificado |
-| M-08 | 2.4 Componentes desactualizados | A06 | Actualización del núcleo, los complementos, PHP y Apache | Pendiente |
+| [M-08](M-08-componentes-desactualizados.md) | 2.4 Componentes desactualizados | A06 | Actualización de núcleo (5.3→7.1.5), PHP (7.4→8.3), Apache y todos los complementos/temas; eliminación de popup-builder; ocultación de versiones. Confirma M-05 y M-07 en vivo | Verificado |
 
 ## Estructura
 
@@ -81,7 +81,13 @@ bash hardening/tests/m06-sqli-wp-fastest-cache.sh
 bash hardening/tests/m07-pe-ultimate-member.sh
 bash hardening/apply/m07-pe-ultimate-member.sh
 bash hardening/tests/m07-pe-ultimate-member.sh
+
+# M-08 - Componentes desactualizados (actualiza toda la plataforma; ejecutar al final)
+bash hardening/apply/m08-componentes-desactualizados.sh
+bash hardening/tests/m08-componentes-desactualizados.sh
 ```
+
+M-08 es la última mitigación y supera los pines de versión de M-05/M-06/M-07 (deja los complementos en su última versión). Tras M-08, el núcleo es WordPress 7.1.5 sobre PHP 8.3, y Ninja Forms y Ultimate Member quedan activos, lo que permite confirmar M-05 y M-07 en vivo.
 
 Nota para M-05: reproducir el estado **anterior** exige forzar la activación de Ninja Forms 3.6.25 (no se activa por medios normales en WordPress 5.3.2). El procedimiento está en [M-05-xss-ninja-forms.md](M-05-xss-ninja-forms.md). Las mitigaciones M-05 a M-07 actúan sobre archivos del volumen (versiones de complementos), por lo que, tras un `scripts/reset.sh`, deben volver a aplicarse con sus scripts.
 

@@ -44,7 +44,7 @@ intento() {   # intento USUARIO CLAVE -> imprime el mensaje de error normalizado
     --data-urlencode "log=$1" --data-urlencode "pwd=$2" --data 'wp-submit=Log+In&testcookie=1' \
     "$BASE/wp-login.php" \
     | tr '\n' ' ' \
-    | sed -n 's/.*<div id="login_error">//p' | sed 's|</div>.*||' \
+    | sed -n 's/.*<div id="login_error"[^>]*>//p' | sed 's|</div>.*||' \
     | sed 's/<[^>]*>//g' | tr -s ' ' | sed 's/^ *//; s/ *$//'
 }
 MSG_USUARIO="$(intento 'usuario_que_no_existe_x9' 'claveX')"

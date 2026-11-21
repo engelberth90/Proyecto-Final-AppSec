@@ -1,0 +1,11 @@
+Ninja Forms: versión 3.6.25 · estado active
+
+== 1. Versión fuera del rango vulnerable ==
+  [FALLO] Versión 3.6.25 dentro del rango vulnerable (<= 3.6.25)
+
+== 2. Parche del proveedor presente en el código ==
+  [FALLO] Clase Sanitizer ausente (código vulnerable)
+
+== 3. Vector del informe (nf_batch_process) ==
+  Respuesta (120): {"data":{"batch_type":"import_form_template","data":"XSSPROBE<img src=x onerror=alert(document.domain)>","action":"nf_ba
+  [FALLO] El payload se refleja SIN escapar (XSS explotable)

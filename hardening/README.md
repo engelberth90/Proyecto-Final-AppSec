@@ -15,7 +15,7 @@ Cada mitigación sigue el mismo ciclo:
 |---|---|---|---|---|
 | [M-01](M-01-archivos-sensibles.md) | 2.3 Exposición de archivos sensibles | A05 | Eliminación de archivos del webroot, reglas en Apache, rotación de la credencial de base de datos y de los salts, registro de depuración fuera del webroot | Verificado |
 | [M-02](M-02-directory-listing.md) | 2.8 Listado de directorios | A05 | `Options -Indexes` en `.htaccess` y en la configuración del servidor, deshabilitación de `mod_autoindex` | Verificado |
-| M-03 | 2.1 Enumeración de usuarios mediante la REST API | A01 | Restricción de `/wp/v2/users` y de `?author=` a usuarios autenticados | Pendiente |
+| [M-03](M-03-enumeracion-usuarios.md) | 2.1 Enumeración de usuarios mediante la REST API | A01 | mu-plugin que restringe la REST API de usuarios, los archivos de autor y oEmbed, y desvincula el slug y el nombre público del nombre de acceso | Verificado |
 | M-04 | 2.2 Fuerza bruta mediante XML-RPC | A07 | Desactivación de XML-RPC, contraseñas robustas y limitación de intentos | Pendiente |
 | M-05 | 2.5 XSS reflejado en Ninja Forms (CVE-2023-37979) | A03 | Actualización a la versión 3.6.26 o posterior | Pendiente |
 | M-06 | 2.6 SQLi ciega en WP Fastest Cache (CVE-2023-6063) | A03 | Actualización a la versión 1.2.2 o posterior | Pendiente |
@@ -57,7 +57,14 @@ bash hardening/tests/m01-archivos-sensibles.sh     # Estado posterior
 bash hardening/tests/m02-directory-listing.sh
 bash hardening/apply/m02-directory-listing.sh
 bash hardening/tests/m02-directory-listing.sh
+
+# M-03 - Enumeración de usuarios
+bash hardening/tests/m03-enumeracion-usuarios.sh
+bash hardening/apply/m03-enumeracion-usuarios.sh
+bash hardening/tests/m03-enumeracion-usuarios.sh
 ```
+
+Para reproducir las condiciones del informe en M-03, la línea base se mide con el complemento WP Cerber desactivado (véase la sección *Incidencias del entorno*).
 
 Una vez aplicada M-01, el despliegue endurecido se administra con el archivo de Compose de este directorio:
 
@@ -100,6 +107,27 @@ La función `wp_get_environment_type()` se incorporó en WordPress 5.5, y el lab
 docker exec -u root wpvl-wordpress php -d memory_limit=512M /usr/local/bin/wp \
   --allow-root --path=/var/www/html plugin deactivate popup-maker
 ```
+
+### Eliminación de usuarios inoperativa (User Registration 3.0.2)
+
+Durante la verificación de M-03, la eliminación de una cuenta de prueba produjo un error fatal:
+
+```
+PHP Fatal error: Uncaught ArgumentCountError: Too few arguments to function
+ur_delete_user_files_on_user_delete(), 2 passed ... and exactly 3 expected
+in /var/www/html/wp-content/plugins/user-registration/includes/functions-ur-core.php:2659
+```
+
+El complemento User Registration 3.0.2 registra una función que espera tres argumentos en la acción `delete_user`. WordPress incorporó el tercer argumento (`$user`) en la versión 5.5, y el laboratorio ejecuta 5.3.2. En consecuencia, eliminar una cuenta desde el panel o mediante WP-CLI falla. Es otra manifestación del hallazgo 2.4 y su corrección definitiva corresponde a M-08. Mientras tanto, las cuentas de prueba se eliminan omitiendo ese complemento:
+
+```bash
+docker exec -u root wpvl-wordpress php -d memory_limit=512M /usr/local/bin/wp \
+  --allow-root --path=/var/www/html user delete <ID> --yes --skip-plugins=user-registration
+```
+
+### Protecciones de WP Cerber en el entorno de verificación
+
+El laboratorio instala y activa WP Cerber 9.5, que bloquea la REST API de usuarios, los archivos de autor y el autor en oEmbed, e incluye bloqueo por intentos fallidos de inicio de sesión. El informe de pentesting documenta respuestas incompatibles con esas protecciones (REST API de usuarios con HTTP 200 en el hallazgo 2.1; unos cincuenta intentos fallidos sin bloqueo en el hallazgo 2.2), lo que indica que el complemento no estaba activo en el entorno evaluado. Para reproducir esas condiciones, las líneas base de las mitigaciones afectadas se miden con WP Cerber desactivado, y cada mitigación se verifica tanto sin el complemento como con él activo.
 
 ## Aviso
 

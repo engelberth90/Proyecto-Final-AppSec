@@ -1,0 +1,24 @@
+Cuentas del sitio: admin editor subscriber 
+
+== 1. Visitante sin autenticación ==
+  REST ?rest_route=/wp/v2/users (PoC del informe)            HTTP 404  sin fuga
+  REST /wp-json/wp/v2/users                                  HTTP 301  sin fuga
+  REST /wp/v2/users/1                                        HTTP 404  sin fuga
+  REST /wp/v2/users?search=a                                 HTTP 404  sin fuga
+  REST /wp/v2/users?context=embed                            HTTP 404  sin fuga
+  Archivo de autor ?author=1                                 HTTP 404  sin fuga
+  Archivo de autor ?author=2                                 HTTP 404  sin fuga
+  Archivo de autor ?author=3                                 HTTP 404  sin fuga
+  oEmbed de la entrada 1                                     HTTP 200  sin fuga
+  Feed RSS (dc:creator)                                      HTTP 200  sin fuga
+  Entrada 1 (clases y enlaces de autor)                      HTTP 200  sin fuga
+
+== 2. Suscriptor autenticado (no debe enumerar cuentas) ==
+  REST /wp/v2/users como suscriptor                          HTTP 404  sin fuga
+
+== 3. Controles funcionales (deben conservar el acceso) ==
+  Editor: autores para el editor de bloques (who=authors)    HTTP 200
+  Administrador: listado de usuarios por REST                HTTP 200
+  Administrador: pantalla de usuarios (/wp-admin/users.php)  HTTP 200
+
+Respuestas con fuga (visitante y suscriptor): 0

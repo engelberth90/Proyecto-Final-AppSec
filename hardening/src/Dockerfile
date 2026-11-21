@@ -54,6 +54,10 @@ RUN a2dismod -f autoindex
 # M-01: el log de depuración de WordPress vive fuera del webroot.
 RUN install -d -o www-data -g www-data -m 0750 /var/log/wordpress
 
+# M-03: mu-plugins de hardening. Se copian a la imagen para los despliegues con
+# volumen nuevo; en un volumen existente los instala apply/m03-*.sh.
+COPY --chown=www-data:www-data hardening/src/mu-plugins/ /var/www/html/wp-content/mu-plugins/
+
 # Plugins ZIPs (mounted in by install.sh from /plugins/ on host) plus a marker.
 COPY assets/lab-banner.txt /var/www/html/lab-banner.txt
 

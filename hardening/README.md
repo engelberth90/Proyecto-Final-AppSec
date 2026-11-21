@@ -18,7 +18,7 @@ Cada mitigación sigue el mismo ciclo:
 | [M-03](M-03-enumeracion-usuarios.md) | 2.1 Enumeración de usuarios mediante la REST API | A01 | mu-plugin que restringe la REST API de usuarios, los archivos de autor y oEmbed, y desvincula el slug y el nombre público del nombre de acceso | Verificado |
 | [M-04](M-04-fuerza-bruta.md) | 2.2 Fuerza bruta mediante XML-RPC | A07 | Bloqueo de XML-RPC, límite de intentos por IP, contraseñas robustas, mensajes de error uniformes y retirada de cabeceras que anuncian el endpoint | Verificado |
 | [M-05](M-05-xss-ninja-forms.md) | 2.5 XSS reflejado en Ninja Forms (CVE-2023-37979) | A03 | Actualización del complemento a 3.6.26 (saneador del proveedor); se mantiene inactivo por incompatibilidad con el núcleo | Verificado |
-| M-06 | 2.6 SQLi ciega en WP Fastest Cache (CVE-2023-6063) | A03 | Actualización a la versión 1.2.2 o posterior | Pendiente |
+| [M-06](M-06-sqli-wp-fastest-cache.md) | 2.6 SQLi ciega en WP Fastest Cache (CVE-2023-6063) | A03 | Actualización del complemento a 1.2.2 (saneado con `esc_sql`); compatible con el núcleo y verificado en vivo | Verificado |
 | M-07 | 2.7 Escalada de privilegios en Ultimate Member (CVE-2023-3460) | A01 | Actualización a la versión 2.6.7 o posterior y auditoría de cuentas | Pendiente |
 | M-08 | 2.4 Componentes desactualizados | A06 | Actualización del núcleo, los complementos, PHP y Apache | Pendiente |
 
@@ -71,6 +71,11 @@ bash hardening/tests/m04-fuerza-bruta.sh
 # M-05 - XSS reflejado en Ninja Forms
 bash hardening/apply/m05-xss-ninja-forms.sh
 bash hardening/tests/m05-xss-ninja-forms.sh
+
+# M-06 - SQLi ciega en WP Fastest Cache
+bash hardening/tests/m06-sqli-wp-fastest-cache.sh
+bash hardening/apply/m06-sqli-wp-fastest-cache.sh
+bash hardening/tests/m06-sqli-wp-fastest-cache.sh
 ```
 
 Nota para M-05: reproducir el estado **anterior** exige forzar la activación de Ninja Forms 3.6.25 (no se activa por medios normales en WordPress 5.3.2). El procedimiento está en [M-05-xss-ninja-forms.md](M-05-xss-ninja-forms.md). Las mitigaciones M-05 a M-07 actúan sobre archivos del volumen (versiones de complementos), por lo que, tras un `scripts/reset.sh`, deben volver a aplicarse con sus scripts.

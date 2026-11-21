@@ -1,0 +1,13 @@
+WP Fastest Cache: versión 1.2.2 · estado active
+
+== 1. Versión fuera del rango vulnerable ==
+  [OK]    Versión 1.2.2 posterior a 1.2.1 (fuera del rango de CVE-2023-6063)
+
+== 2. Saneado esc_sql() presente en is_user_admin() ==
+  [OK]    La consulta sanea el valor de la cookie con esc_sql()
+
+== 3. Inyección SQL ciega basada en tiempo (cookie, sin autenticación) ==
+  tiempo benigno   : 0.049329s
+  tiempo inyectado : 0.064385s
+  diferencia       : 0.015056s
+  [OK]    El payload no induce retardo (SQLi no explotable)

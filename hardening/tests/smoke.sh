@@ -6,14 +6,16 @@
 # aplicar una mitigación. Se ejecuta después de cada M-0X como control de
 # regresión, complementario a la prueba específica de cada hallazgo.
 #
-# Uso: bash hardening/tests/smoke.sh [URL_BASE] [CONTENEDOR] [USUARIO] [CONTRASEÑA]
+# Uso: bash hardening/tests/smoke.sh [URL_BASE] [CONTENEDOR]
+# Credenciales: véase lib-credenciales.sh (ADMIN_USER / ADMIN_PASS).
 # Salida: código 0 si todas las comprobaciones pasan; 1 en caso contrario.
 # =============================================================================
 
+source "$(dirname "${BASH_SOURCE[0]}")/lib-credenciales.sh"
 BASE="${1:-http://localhost:31338}"
 WP="${2:-wpvl-wordpress}"
-USER_ADMIN="${3:-admin}"
-PASS_ADMIN="${4:-admin}"
+USER_ADMIN="$ADMIN_USER"
+PASS_ADMIN="$ADMIN_PASS"
 
 JAR="$(mktemp)"
 fallos=0

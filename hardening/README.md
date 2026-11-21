@@ -16,7 +16,7 @@ Cada mitigación sigue el mismo ciclo:
 | [M-01](M-01-archivos-sensibles.md) | 2.3 Exposición de archivos sensibles | A05 | Eliminación de archivos del webroot, reglas en Apache, rotación de la credencial de base de datos y de los salts, registro de depuración fuera del webroot | Verificado |
 | [M-02](M-02-directory-listing.md) | 2.8 Listado de directorios | A05 | `Options -Indexes` en `.htaccess` y en la configuración del servidor, deshabilitación de `mod_autoindex` | Verificado |
 | [M-03](M-03-enumeracion-usuarios.md) | 2.1 Enumeración de usuarios mediante la REST API | A01 | mu-plugin que restringe la REST API de usuarios, los archivos de autor y oEmbed, y desvincula el slug y el nombre público del nombre de acceso | Verificado |
-| M-04 | 2.2 Fuerza bruta mediante XML-RPC | A07 | Desactivación de XML-RPC, contraseñas robustas y limitación de intentos | Pendiente |
+| [M-04](M-04-fuerza-bruta.md) | 2.2 Fuerza bruta mediante XML-RPC | A07 | Bloqueo de XML-RPC, límite de intentos por IP, contraseñas robustas, mensajes de error uniformes y retirada de cabeceras que anuncian el endpoint | Verificado |
 | M-05 | 2.5 XSS reflejado en Ninja Forms (CVE-2023-37979) | A03 | Actualización a la versión 3.6.26 o posterior | Pendiente |
 | M-06 | 2.6 SQLi ciega en WP Fastest Cache (CVE-2023-6063) | A03 | Actualización a la versión 1.2.2 o posterior | Pendiente |
 | M-07 | 2.7 Escalada de privilegios en Ultimate Member (CVE-2023-3460) | A01 | Actualización a la versión 2.6.7 o posterior y auditoría de cuentas | Pendiente |
@@ -62,9 +62,14 @@ bash hardening/tests/m02-directory-listing.sh
 bash hardening/tests/m03-enumeracion-usuarios.sh
 bash hardening/apply/m03-enumeracion-usuarios.sh
 bash hardening/tests/m03-enumeracion-usuarios.sh
+
+# M-04 - Fuerza bruta mediante XML-RPC
+bash hardening/tests/m04-fuerza-bruta.sh
+bash hardening/apply/m04-fuerza-bruta.sh
+bash hardening/tests/m04-fuerza-bruta.sh
 ```
 
-Para reproducir las condiciones del informe en M-03, la línea base se mide con el complemento WP Cerber desactivado (véase la sección *Incidencias del entorno*).
+Las mediciones se realizan con el complemento WP Cerber desactivado para reproducir las condiciones del informe (véase la sección *Incidencias del entorno*). A partir de M-04, las contraseñas de las cuentas son aleatorias y se guardan en `.env`; las pruebas las leen mediante `hardening/tests/lib-credenciales.sh`.
 
 Una vez aplicada M-01, el despliegue endurecido se administra con el archivo de Compose de este directorio:
 
@@ -127,7 +132,15 @@ docker exec -u root wpvl-wordpress php -d memory_limit=512M /usr/local/bin/wp \
 
 ### Protecciones de WP Cerber en el entorno de verificación
 
-El laboratorio instala y activa WP Cerber 9.5, que bloquea la REST API de usuarios, los archivos de autor y el autor en oEmbed, e incluye bloqueo por intentos fallidos de inicio de sesión. El informe de pentesting documenta respuestas incompatibles con esas protecciones (REST API de usuarios con HTTP 200 en el hallazgo 2.1; unos cincuenta intentos fallidos sin bloqueo en el hallazgo 2.2), lo que indica que el complemento no estaba activo en el entorno evaluado. Para reproducir esas condiciones, las líneas base de las mitigaciones afectadas se miden con WP Cerber desactivado, y cada mitigación se verifica tanto sin el complemento como con él activo.
+El laboratorio instala y activa WP Cerber 9.5, que bloquea la REST API de usuarios, los archivos de autor y el autor en oEmbed, e incluye bloqueo por intentos fallidos de inicio de sesión. El informe de pentesting documenta respuestas incompatibles con esas protecciones (REST API de usuarios con HTTP 200 en el hallazgo 2.1; unos cincuenta intentos fallidos sin bloqueo en el hallazgo 2.2), lo que indica que el complemento no estaba activo en el entorno evaluado.
+
+Por tres razones, WP Cerber se mantiene **desactivado** durante el trabajo de mitigación y verificación:
+
+1. Reproduce las condiciones del informe.
+2. Es a su vez un componente vulnerable (CVE-2024-2697), incluido en el inventario del hallazgo 2.4; su actualización o retirada se decide en M-08.
+3. Su bloqueo por IP responde 404 a secuencias de prueba que generan fallos de inicio de sesión (como la de M-04), lo que falsea las mediciones antes/después.
+
+Cada mitigación se diseña de forma independiente de WP Cerber: no depende de que esté activo ni entra en conflicto con él. En M-03, cuya prueba no genera fallos de inicio de sesión, se verificó además que los controles coexisten con el complemento activo.
 
 ## Aviso
 

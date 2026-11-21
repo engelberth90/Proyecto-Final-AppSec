@@ -1,0 +1,23 @@
+== 1. XML-RPC (vector del informe) ==
+  xmlrpc.php -> HTTP 200
+  [FALLO] xmlrpc.php procesa peticiones de autenticación (fuerza bruta posible)
+  system.multicall -> HTTP 200 (amplificación disponible)
+
+== 2. Divulgación del endpoint ==
+  [FALLO] Cabecera X-Pingback presente
+  [FALLO] Enlace RSD presente
+
+== 3. Mensajes de error del inicio de sesión ==
+  Usuario inexistente : 	ERROR: Invalid username, email address or incorrect password.
+  Contraseña errónea  : 	ERROR: Invalid username, email address or incorrect password.
+  [OK]    Los mensajes son idénticos (no permiten enumerar usuarios)
+
+== 4. Inicio de sesión legítimo (antes del bloqueo) ==
+  [OK]    Credenciales válidas conceden acceso (302|http://localhost:31338/wp-admin/)
+
+== 5. Límite de intentos (10 intentos fallidos consecutivos) ==
+  Intentos bloqueados: 0 de 10
+  [FALLO] No hay límite de intentos (fuerza bruta ilimitada)
+
+== 6. Recuperación tras limpiar el bloqueo ==
+  [OK]    Tras limpiar el bloqueo, el acceso legítimo se restablece

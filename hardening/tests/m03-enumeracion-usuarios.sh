@@ -11,14 +11,12 @@
 # que la prueba no depende de conocerlos de antemano.
 #
 # Uso: bash hardening/tests/m03-enumeracion-usuarios.sh [URL_BASE] [CONTENEDOR]
-# Variables opcionales: SUB_USER/SUB_PASS, EDITOR_USER/EDITOR_PASS, ADMIN_USER/ADMIN_PASS
+# Credenciales: véase lib-credenciales.sh.
 # =============================================================================
 
+source "$(dirname "${BASH_SOURCE[0]}")/lib-credenciales.sh"
 BASE="${1:-http://localhost:31338}"
 WP="${2:-wpvl-wordpress}"
-SUB_USER="${SUB_USER:-subscriber}";   SUB_PASS="${SUB_PASS:-password123}"
-EDITOR_USER="${EDITOR_USER:-editor}"; EDITOR_PASS="${EDITOR_PASS:-editor}"
-ADMIN_USER="${ADMIN_USER:-admin}";    ADMIN_PASS="${ADMIN_PASS:-admin}"
 
 LOGINS=$(docker exec -u root "$WP" php -d memory_limit=512M /usr/local/bin/wp \
   --allow-root --path=/var/www/html user list --field=user_login 2>/dev/null)

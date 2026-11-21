@@ -1,0 +1,24 @@
+== 1. XML-RPC (vector del informe) ==
+  xmlrpc.php -> HTTP 404
+  [OK]    xmlrpc.php no procesa peticiones de autenticación
+  system.multicall -> HTTP 404 (bloqueado)
+
+== 2. Divulgación del endpoint ==
+  [OK]    Cabecera X-Pingback ausente
+  [OK]    Enlace RSD ausente
+
+== 3. Mensajes de error del inicio de sesión ==
+  Usuario inexistente : Error: las credenciales no son válidas.
+  Contraseña errónea  : Error: las credenciales no son válidas.
+  [OK]    Los mensajes son idénticos (no permiten enumerar usuarios)
+
+== 4. Inicio de sesión legítimo (antes del bloqueo) ==
+  [OK]    Credenciales válidas conceden acceso (302|http://localhost:31338/wp-admin/)
+
+== 5. Límite de intentos (10 intentos fallidos consecutivos) ==
+  Bloqueo activado a partir del intento 6
+  Intentos bloqueados: 5 de 10
+  [OK]    El límite de intentos está activo
+
+== 6. Recuperación tras limpiar el bloqueo ==
+  [OK]    Tras limpiar el bloqueo, el acceso legítimo se restablece

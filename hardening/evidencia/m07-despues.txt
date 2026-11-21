@@ -1,0 +1,10 @@
+Ultimate Member: versión 2.6.7 · estado inactive
+
+== 1. Versión fuera del rango vulnerable ==
+  [OK]    Versión 2.6.7 posterior a 2.6.6 (fuera del rango de CVE-2023-3460)
+
+== 2. Control de la versión parcheada: lista blanca de claves de metadatos ==
+  [OK]    Presente is_metakey_banned() con lista blanca usermeta_whitelist
+
+== 3. Estado en el laboratorio ==
+  [OK]    Complemento inactivo: el vector de registro no es alcanzable en este entorno

@@ -1,0 +1,10 @@
+Ultimate Member: versión 2.6.6 · estado inactive
+
+== 1. Versión fuera del rango vulnerable ==
+  [FALLO] Versión 2.6.6 dentro del rango vulnerable (<= 2.6.6)
+
+== 2. Control de la versión parcheada: lista blanca de claves de metadatos ==
+  [FALLO] Ausente el control de lista blanca (lógica de lista de bloqueo evadible)
+
+== 3. Estado en el laboratorio ==
+  [OK]    Complemento inactivo: el vector de registro no es alcanzable en este entorno

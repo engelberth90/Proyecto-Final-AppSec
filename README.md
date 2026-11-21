@@ -48,7 +48,7 @@ La documentación original del laboratorio se conserva en [`docs/README-lab-orig
 | 2.4 | Uso de componentes desactualizados y vulnerables | A06 | M-08 | ⏳ Pendiente |
 | 2.5 | XSS reflejado en Ninja Forms (CVE-2023-37979) | A03 | [M-05](hardening/M-05-xss-ninja-forms.md) | 🔁 En re-evaluación |
 | 2.6 | Inyección SQL ciega sin autenticación en WP Fastest Cache (CVE-2023-6063) | A03 | [M-06](hardening/M-06-sqli-wp-fastest-cache.md) | 🔁 En re-evaluación |
-| 2.7 | Escalada de privilegios sin autenticación en Ultimate Member (CVE-2023-3460) | A01 | M-07 | ⏳ Pendiente |
+| 2.7 | Escalada de privilegios sin autenticación en Ultimate Member (CVE-2023-3460) | A01 | [M-07](hardening/M-07-pe-ultimate-member.md) | 🔁 En re-evaluación |
 | 2.8 | Listado de directorios habilitado | A05 | [M-02](hardening/M-02-directory-listing.md) | 🔁 En re-evaluación |
 
 **Leyenda:** ⏳ Pendiente · 🔧 En desarrollo · 🔁 En re-evaluación · ✅ Mitigado y re-evaluado

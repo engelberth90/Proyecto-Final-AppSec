@@ -1,0 +1,31 @@
+== Fase 1: directorios reportados en el pentesting ==
+RUTA                                                    RESULTADO
+/wp-content/plugins/wp-statistics/                      LISTADO EXPUESTO
+/wp-content/plugins/woocommerce/                        LISTADO EXPUESTO
+/wp-content/plugins/wp-statistics/assets/               sin listado
+/wp-content/plugins/woocommerce/includes/               LISTADO EXPUESTO
+
+== Fase 2: barrido completo del webroot ==
+Directorios sin archivo índice    : 7887
+Con listado expuesto (HTTP 200)   : 7854
+Sin listado (HTTP 403/404)        : 24
+Sin respuesta válida (otros/000)  : 9
+Muestra (primeros 10):
+  /wp-admin/css/
+  /wp-admin/css/colors/
+  /wp-admin/css/colors/blue/
+  /wp-admin/css/colors/coffee/
+  /wp-admin/css/colors/ectoplasm/
+  /wp-admin/css/colors/light/
+  /wp-admin/css/colors/midnight/
+  /wp-admin/css/colors/ocean/
+  /wp-admin/css/colors/sunrise/
+  /wp-admin/images/
+Confirmación de contenido: http://localhost:31338/wp-admin/css/ devuelve una página 'Index of'
+
+== Control de regresión ==
+/                                                  -> HTTP 200
+/wp-login.php                                      -> HTTP 200
+/wp-content/plugins/wp-statistics/readme.txt       -> HTTP 200
+/wp-includes/js/jquery/jquery.js                   -> HTTP 200
+Respuesta HTTP a un directorio sin índice: 200

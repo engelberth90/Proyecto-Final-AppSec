@@ -14,7 +14,7 @@ Cada mitigación sigue el mismo ciclo:
 | ID | Hallazgo del informe | OWASP | Medida | Estado |
 |---|---|---|---|---|
 | [M-01](M-01-archivos-sensibles.md) | 2.3 Exposición de archivos sensibles | A05 | Eliminación de archivos del webroot, reglas en Apache, rotación de la credencial de base de datos y de los salts, registro de depuración fuera del webroot | Verificado |
-| M-02 | 2.8 Listado de directorios | A05 | Desactivación de `Options Indexes` | Pendiente |
+| [M-02](M-02-directory-listing.md) | 2.8 Listado de directorios | A05 | `Options -Indexes` en `.htaccess` y en la configuración del servidor, deshabilitación de `mod_autoindex` | Verificado |
 | M-03 | 2.1 Enumeración de usuarios mediante la REST API | A01 | Restricción de `/wp/v2/users` y de `?author=` a usuarios autenticados | Pendiente |
 | M-04 | 2.2 Fuerza bruta mediante XML-RPC | A07 | Desactivación de XML-RPC, contraseñas robustas y limitación de intentos | Pendiente |
 | M-05 | 2.5 XSS reflejado en Ninja Forms (CVE-2023-37979) | A03 | Actualización a la versión 3.6.26 o posterior | Pendiente |
@@ -45,10 +45,18 @@ hardening/
 
 Los comandos se ejecutan desde la raíz del repositorio.
 
+Las mitigaciones se aplican en orden, porque cada una parte del estado que deja la anterior.
+
 ```bash
+# M-01 - Exposición de archivos sensibles
 bash hardening/tests/m01-archivos-sensibles.sh     # Estado anterior
 bash hardening/apply/m01-archivos-sensibles.sh     # Aplicación de la mitigación
 bash hardening/tests/m01-archivos-sensibles.sh     # Estado posterior
+
+# M-02 - Listado de directorios
+bash hardening/tests/m02-directory-listing.sh
+bash hardening/apply/m02-directory-listing.sh
+bash hardening/tests/m02-directory-listing.sh
 ```
 
 Una vez aplicada M-01, el despliegue endurecido se administra con el archivo de Compose de este directorio:

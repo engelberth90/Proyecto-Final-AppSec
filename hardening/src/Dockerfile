@@ -39,11 +39,17 @@ RUN sed -i 's|AllowOverride None|AllowOverride All|g' /etc/apache2/apache2.conf
 # M-01: no se copian al webroot archivos de configuración, respaldos, volcados,
 # logs, metadatos de git ni herramientas de diagnóstico (info.php, adminer.php).
 # Lo que no está en el webroot no se puede descargar.
-COPY assets/htaccess           /var/www/html/.htaccess
+# M-02: .htaccess endurecido (Options -Indexes en lugar de +Indexes).
+COPY hardening/src/htaccess    /var/www/html/.htaccess
 
 # M-01: capa de defensa en Apache (bloquea dotfiles, respaldos, volcados y logs).
+# M-02: desactiva Indexes en el directorio del sitio.
 COPY hardening/src/apache/zz-hardening.conf /etc/apache2/conf-available/zz-hardening.conf
 RUN a2enconf zz-hardening
+
+# M-02: sin mod_autoindex Apache no puede generar listados de directorios,
+# aunque un .htaccess de la aplicación o de un complemento active Indexes.
+RUN a2dismod -f autoindex
 
 # M-01: el log de depuración de WordPress vive fuera del webroot.
 RUN install -d -o www-data -g www-data -m 0750 /var/log/wordpress

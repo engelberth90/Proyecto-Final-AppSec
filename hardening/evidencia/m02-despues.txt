@@ -1,0 +1,19 @@
+== Fase 1: directorios reportados en el pentesting ==
+RUTA                                                    RESULTADO
+/wp-content/plugins/wp-statistics/                      sin listado
+/wp-content/plugins/woocommerce/                        sin listado
+/wp-content/plugins/wp-statistics/assets/               sin listado
+/wp-content/plugins/woocommerce/includes/               sin listado
+
+== Fase 2: barrido completo del webroot ==
+Directorios sin archivo índice    : 7887
+Con listado expuesto (HTTP 200)   : 0
+Sin listado (HTTP 403/404)        : 7878
+Sin respuesta válida (otros/000)  : 9
+
+== Control de regresión ==
+/                                                  -> HTTP 200
+/wp-login.php                                      -> HTTP 200
+/wp-content/plugins/wp-statistics/readme.txt       -> HTTP 200
+/wp-includes/js/jquery/jquery.js                   -> HTTP 200
+Respuesta HTTP a un directorio sin índice: 404

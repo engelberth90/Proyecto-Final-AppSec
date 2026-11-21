@@ -1,0 +1,16 @@
+# .htaccess del sitio - versión endurecida.
+#
+# M-02: el listado automático de directorios se desactiva (-Indexes). Una
+# solicitud a un directorio sin archivo índice deja de devolver el inventario
+# de sus archivos.
+
+Options -Indexes +FollowSymLinks
+
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>

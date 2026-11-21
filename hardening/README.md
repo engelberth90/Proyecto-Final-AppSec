@@ -67,6 +67,40 @@ docker compose --project-directory . -f hardening/src/docker-compose.yml up -d
 
 La contraseña de base de datos generada durante M-01 se almacena en `.env`, en la raíz del proyecto, con permisos `600`. Ese archivo está excluido del control de versiones.
 
+### Control de regresión funcional
+
+Además de la prueba específica de cada hallazgo, después de cada mitigación se ejecuta una prueba de humo que comprueba las funciones principales del sitio: portada, entradas, feed RSS, REST API, `admin-ajax.php`, `wp-cron.php`, inicio de sesión, pantallas del panel de administración y ausencia de errores fatales de PHP o Apache.
+
+```bash
+bash hardening/tests/smoke.sh
+```
+
+## Incidencias del entorno
+
+### Panel de administración inoperativo desde la instalación (Popup Maker 1.18.0)
+
+Durante el control de regresión posterior a M-02 se detectó que todas las pantallas de `/wp-admin/` respondían HTTP 500, aunque el inicio de sesión era correcto. El registro de Apache identificó la causa:
+
+```
+PHP Fatal error: Uncaught Error: Call to undefined function wp_get_environment_type()
+in /var/www/html/wp-content/plugins/popup-maker/classes/Admin/Notices.php:261
+```
+
+La función `wp_get_environment_type()` se incorporó en WordPress 5.5, y el laboratorio ejecuta WordPress 5.3.2. El complemento Popup Maker 1.18.0, instalado por `scripts/install.sh`, requiere una versión del núcleo superior a la disponible y provoca un error fatal en cada página del panel.
+
+| Aspecto | Determinación |
+|---|---|
+| Origen | Defecto preexistente del laboratorio: incompatibilidad entre la versión del complemento y la del núcleo |
+| Relación con M-01 y M-02 | Ninguna. Esas mitigaciones no modifican el núcleo, los complementos ni la configuración de PHP. |
+| Alcance | Popup Maker es el único complemento que provoca errores fatales en el panel; desactivado, las pantallas responden 200 y no se registran errores |
+| Relación con el informe | Popup Maker no forma parte de los hallazgos reportados. La incompatibilidad es una manifestación del hallazgo 2.4 (componentes desactualizados) |
+| Acción | Se desactivó el complemento para restablecer el panel, necesario para reproducir hallazgos que requieren una sesión administrativa (por ejemplo, 2.5). La corrección definitiva, la actualización del núcleo, corresponde a M-08. |
+
+```bash
+docker exec -u root wpvl-wordpress php -d memory_limit=512M /usr/local/bin/wp \
+  --allow-root --path=/var/www/html plugin deactivate popup-maker
+```
+
 ## Aviso
 
 El laboratorio base es intencionalmente vulnerable. Debe ejecutarse únicamente en un entorno aislado y no exponerse a redes públicas.

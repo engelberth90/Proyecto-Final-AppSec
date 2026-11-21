@@ -1,0 +1,23 @@
+RUTA                       HTTP   RESULTADO
+----                       ----   ---------
+/.env                      404    bloqueado/no existe
+/wp-config.php.bak         404    bloqueado/no existe
+/dump.sql                  404    bloqueado/no existe
+/.git/config               404    bloqueado/no existe
+/.git/HEAD                 404    bloqueado/no existe
+/debug.log                 404    bloqueado/no existe
+/wp-content/debug.log      404    bloqueado/no existe
+/info.php                  404    bloqueado/no existe
+/adminer.php               404    bloqueado/no existe
+/.htaccess                 404    bloqueado/no existe
+/wp-config.php~            404    bloqueado/no existe
+/wp-config.php.old         404    bloqueado/no existe
+/wp-config.php.save        404    bloqueado/no existe
+/backup.sql.gz             404    bloqueado/no existe
+/.env.backup               404    bloqueado/no existe
+
+Total expuestos: 0 de 15
+
+Control funcional /                                             -> HTTP 200
+Control funcional /wp-login.php                                 -> HTTP 200
+Control funcional /wp-content/plugins/wp-statistics/readme.txt  -> HTTP 200

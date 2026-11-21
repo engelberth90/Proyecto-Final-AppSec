@@ -1,0 +1,23 @@
+RUTA                       HTTP   RESULTADO
+----                       ----   ---------
+/.env                      200    EXPUESTO
+/wp-config.php.bak         200    EXPUESTO
+/dump.sql                  200    EXPUESTO
+/.git/config               200    EXPUESTO
+/.git/HEAD                 200    EXPUESTO
+/debug.log                 200    EXPUESTO
+/wp-content/debug.log      200    EXPUESTO
+/info.php                  200    EXPUESTO
+/adminer.php               200    EXPUESTO
+/.htaccess                 403    bloqueado/no existe
+/wp-config.php~            301    bloqueado/no existe
+/wp-config.php.old         403    bloqueado/no existe
+/wp-config.php.save        403    bloqueado/no existe
+/backup.sql.gz             301    bloqueado/no existe
+/.env.backup               301    bloqueado/no existe
+
+Total expuestos: 9 de 15
+
+Control funcional /                                             -> HTTP 200
+Control funcional /wp-login.php                                 -> HTTP 200
+Control funcional /wp-content/plugins/wp-statistics/readme.txt  -> HTTP 200

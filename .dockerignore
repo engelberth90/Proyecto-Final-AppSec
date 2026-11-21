@@ -1,0 +1,10 @@
+# Contexto de build de la imagen (M-01).
+# Se excluyen secretos y artefactos que no deben llegar al daemon de Docker
+# ni, por error, a una capa de la imagen.
+.git
+.env
+.env.*
+*.log
+hardening/evidencia
+hardening/tests
+docs

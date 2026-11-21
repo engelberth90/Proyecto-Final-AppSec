@@ -1,0 +1,115 @@
+################################################################################
+# wordpress-vulnerable-lab — the most complete Docker WordPress vulnerable lab
+# Author: Ayi NEDJIMI <ayinedjimi@users.noreply.github.com>
+# Repo:   https://github.com/ayinedjimi/wordpress-vulnerable-lab
+#
+# DO NOT EXPOSE TO THE INTERNET. Isolated lab use only.
+#
+# Services & default ports:
+#   WordPress     -> http://localhost:31338
+#   phpMyAdmin    -> http://localhost:31339
+#   MailHog UI    -> http://localhost:31340  (SMTP 31325)
+#   Adminer       -> http://localhost:31341
+#   Redis         -> localhost:31379 (exposed on purpose)
+#   Memcached     -> localhost:31211 (exposed on purpose)
+#   MySQL         -> localhost:31306 (exposed on purpose)
+################################################################################
+
+services:
+
+  db:
+    image: mysql:5.7
+    container_name: wpvl-db
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0 --skip-name-resolve
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "wordpress"
+      MYSQL_USER: "wordpress"
+      # M-01: credencial rotada; se lee de ./.env (fuera del webroot, permisos 600).
+      MYSQL_PASSWORD: "${WP_DB_PASSWORD:?Define WP_DB_PASSWORD en .env}"
+    ports:
+      - "127.0.0.1:31306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    build:
+      context: .
+      dockerfile: hardening/src/Dockerfile
+    container_name: wpvl-wordpress
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+      - memcached
+    ports:
+      - "127.0.0.1:31338:80"
+    environment:
+      WORDPRESS_DB_HOST: "db:3306"
+      WORDPRESS_DB_USER: "wordpress"
+      # M-01: credencial rotada (la anterior quedó expuesta en .env y wp-config.php.bak).
+      WORDPRESS_DB_PASSWORD: "${WP_DB_PASSWORD:?Define WP_DB_PASSWORD en .env}"
+      WORDPRESS_DB_NAME: "wordpress"
+      WORDPRESS_TABLE_PREFIX: "wp_"
+      # M-01: WORDPRESS_DEBUG eliminado (no se depura en un sitio expuesto).
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_DEBUG_LOG', '/var/log/wordpress/debug.log');
+        define('WP_DEBUG_DISPLAY', false);
+        define('DISALLOW_FILE_EDIT', false);
+        define('FS_METHOD', 'direct');
+        define('AUTOMATIC_UPDATER_DISABLED', true);
+        define('WP_AUTO_UPDATE_CORE', false);
+    volumes:
+      - wp_data:/var/www/html
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: wpvl-pma
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:31339:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+      UPLOAD_LIMIT: 256M
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: wpvl-mailhog
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:31325:1025"
+      - "127.0.0.1:31340:8025"
+
+  adminer:
+    image: adminer:latest
+    container_name: wpvl-adminer
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:31341:8080"
+
+  redis:
+    image: redis:6
+    container_name: wpvl-redis
+    restart: unless-stopped
+    # Intentionally exposed with no auth (misconfig sim).
+    ports:
+      - "127.0.0.1:31379:6379"
+
+  memcached:
+    image: memcached:1.6
+    container_name: wpvl-memcached
+    restart: unless-stopped
+    # Intentionally exposed with no ACL (misconfig sim).
+    ports:
+      - "127.0.0.1:31211:11211"
+
+volumes:
+  db_data:
+  wp_data:
